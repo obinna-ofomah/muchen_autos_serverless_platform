@@ -1,0 +1,23 @@
+name: CI Workflow
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu:latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: hello world
+        run: echo "Welcome to te testing"
+        shell: bash
+
+  goodbye:
+    runs-on: ubuntu-latest
+    steps:
+      - name: goodbye world
+        runs: echo "Goodbye World"
+        shell: bash
