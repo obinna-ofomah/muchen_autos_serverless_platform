@@ -10,7 +10,6 @@ jobs:
   test:
     runs-on: ubuntu:latest
     steps:
-      - uses: actions/checkout@v3
       - name: hello world
         run: echo "Welcome to te testing"
         shell: bash
