@@ -1,0 +1,40 @@
+name: CI/CD Workflow
+
+on:
+  push:
+    branches:
+      main
+    paths:
+      - '**.py'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install flake8 isort
+      - run: isort --check-only --diff .
+      - run: flake8 .
+
+  deploy:
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: eu-west-2
+      - name: Build and deploy
+        working-directory: lambda_image
+        run: |
+          aws ecr get-login-password --region eu-west-2 | docker login --username AWS --password-stdin 522814708069.dkr.ecr.eu-west-2.amazonaws.com
+          docker build -t lambda_ecr .
+          docker tag lambda_ecr:latest 522814708069.dkr.ecr.eu-west-2.amazonaws.com/lambda_ecr:latest
+          docker push 522814708069.dkr.ecr.eu-west-2.amazonaws.com/lambda_ecr:latest
+          aws lambda update-function-code --function-name muchen_container_function --image-uri 522814708069.dkr.ecr.eu-west-2.amazonaws.com/lambda_ecr:latest
